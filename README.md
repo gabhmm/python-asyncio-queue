@@ -140,4 +140,6 @@ uv add --dev pytest
 uv run pytest -v
 ```
 
+---
+
 > *"Em um lugar escuro nos encontramos, e um pouco mais de conhecimento ilumina nosso caminho." — Yoda*
