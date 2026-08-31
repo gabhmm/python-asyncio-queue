@@ -68,17 +68,25 @@ async def main() -> None:
 
     async with asyncio.TaskGroup() as tg:
 
+        logger.info("=== Iniciando Pipeline Produtor-Fila-Consumidor ===")
+
         tg.create_task(consumidor(1, fila))
         tg.create_task(consumidor(2, fila))
 
 
-        tg.create_task(produtor("Sensor-01",acoes_sensor01,fila))
-        tg.create_task(produtor("Sensor-02",acoes_sensor02,fila))
-        
+        produtor_01 = tg.create_task(produtor("Sensor-01", acoes_sensor01, fila))
+        produtor_02 = tg.create_task(produtor("Sensor-02", acoes_sensor02, fila))
+
+        await produtor_01
+        await produtor_02
+
         await fila.join()
 
         await fila.put(None)
         await fila.put(None)
+
+    logger.info("=== Pipeline concluído com sucesso e todos os recursos liberados! ===")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
