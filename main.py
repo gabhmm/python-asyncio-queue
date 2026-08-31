@@ -60,8 +60,8 @@ async def main() -> None:
     ]
 
     acoes_sensor02: list[tuple[ActionType,str]] = [
-        ("AUTH", "token_alpha_123"),
-        ("QUERY", "SELECT temp FROM sala_01"),
+        ("AUTH", "token_beta_456"),
+        ("QUERY", "SELECT temp FROM sala_03"),
         ("DISCONNECT", "logout"),  
     ]
 
