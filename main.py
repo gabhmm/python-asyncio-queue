@@ -8,13 +8,26 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 
-async def produtor(
+logger = logging.getLogger(__name__)
+ 
+async def produtor( 
     nome: str,
     acoes: list[tuple[ActionType, str]],
     fila: asyncio.Queue[MessagePayload | None],
 ) -> None:
-    """Produz mensagens MessagePayload e as insere na fila assíncrona."""
+ 
+    logger.info(f"[Produtor {nome}] Iniciando geração de mensagens...")
 
+    for action, content in acoes:
+
+        payload: MessagePayload = MessagePayload.create(nome,action,content)
+
+        logger.info(f"[Produtor {nome}] Enfileirando -> {action}: {content}")
+
+        await asyncio.sleep(0.5)
+        await fila.put(payload)
+    logger.info(f"[Produtor {nome}] Finalizou a produção de mensagens.")
+    
 
 async def consumidor(
     worker_id: int,
