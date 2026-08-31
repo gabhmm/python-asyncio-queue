@@ -33,12 +33,52 @@ async def consumidor(
     worker_id: int,
     fila: asyncio.Queue[MessagePayload | None],
 ) -> None:
-    """Consome e processa mensagens MessagePayload retiradas da fila."""
+
+    while True:
+        try:
+            payload = await fila.get()
+
+            if payload is None:
+                logger.info(f"[Consumidor {worker_id}] Recebeu sinal de encerramento. Finalizando.")
+                break
+
+            logger.info(f"[Consumidor {worker_id}] Processando mensagem de [{payload.client_id}] | Ação: {payload.action} | Conteúdo: {payload.content}")        
+            await asyncio.sleep(0.1)
+
+        finally:
+            fila.task_done()
 
 
 async def main() -> None:
-    """Coordena a fila, produtores e consumidores com concorrência estruturada."""
 
+    fila: asyncio.Queue[MessagePayload | None] = asyncio.Queue(maxsize=10)
+
+    acoes_sensor01: list[tuple[ActionType,str]] = [
+        ("AUTH", "token_alpha_123"),
+        ("QUERY", "SELECT temp FROM sala_01"),
+        ("DISCONNECT", "logout"),
+    ]
+
+    acoes_sensor02: list[tuple[ActionType,str]] = [
+        ("AUTH", "token_alpha_123"),
+        ("QUERY", "SELECT temp FROM sala_01"),
+        ("DISCONNECT", "logout"),  
+    ]
+
+
+    async with asyncio.TaskGroup() as tg:
+
+        tg.create_task(consumidor(1, fila))
+        tg.create_task(consumidor(2, fila))
+
+
+        tg.create_task(produtor("Sensor-01",acoes_sensor01,fila))
+        tg.create_task(produtor("Sensor-02",acoes_sensor02,fila))
+        
+        await fila.join()
+
+        await fila.put(None)
+        await fila.put(None)
 
 if __name__ == "__main__":
     asyncio.run(main())
